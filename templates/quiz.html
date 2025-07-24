@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Examen {{ metier }} - CyberGuard Industrie{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold mb-2">Examen {{ metier }}</h1>
+                <p class="lead mb-3 text-secondary">Répondez à toutes les situations de cybersécurité de votre métier.<br>
+                <span class="badge bg-info fs-6">Réponses anonymes - Examen individuel</span></p>
+                <div class="progress mb-3" style="height: 12px; border-radius: 8px;">
+                    <div class="progress-bar bg-gradient" role="progressbar" style="width: 0%" id="progressBar"></div>
+                </div>
+                <span id="questionCounter" class="fw-semibold">Question 1 / {{ questions|length }}</span>
+            </div>
+
+            <!-- Quiz Container -->
+            <div id="quiz-app">
+                <div class="card glass-effect border-0 shadow-lg rounded-xl mb-4">
+                    <div class="card-header bg-gradient-primary text-white rounded-top-xl">
+                        <h5 class="mb-0" id="question-title">
+                            <i class="fas fa-question-circle me-2"></i>
+                            Situation
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead mb-4" id="question-text"></p>
+                        <div id="options-container" class="mb-4"></div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="button" class="btn btn-outline-secondary px-4 py-2" onclick="goToPrevious()" id="prevBtn" style="display: none;">
+                                <i class="fas fa-arrow-left me-2"></i>Précédent
+                            </button>
+                            <div class="text-center flex-grow-1">
+                                <small class="text-muted">
+                                    <span id="answered-count">0</span> / {{ questions|length }} répondues
+                                </small>
+                            </div>
+                            <button type="button" class="btn btn-primary px-4 py-2" onclick="goToNext()" id="nextBtn" disabled>
+                                Suivant <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                            <button type="button" class="btn btn-success px-4 py-2" onclick="finishQuiz()" id="finishBtn" style="display: none;" disabled>
+                                <i class="fas fa-check me-2"></i>Terminer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Résultats -->
+            <div id="results" class="card glass-effect border-0 shadow-lg rounded-xl" style="display: none;">
+                <div class="card-header text-center bg-success text-white rounded-top-xl">
+                    <h3 class="mb-0">
+                        <i class="fas fa-trophy me-2"></i>
+                        Résultats de l'Examen
+                    </h3>
+                </div>
+                <div class="card-body text-center">
+                    <div id="scoreDisplay"></div>
+                    <div id="badgeDisplay" class="mt-3"></div>
+                    <div class="mt-4 d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-chart-line me-2"></i>Tableau de bord
+                        </a>
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-home me-2"></i>Accueil
+                        </a>
+                        <button class="btn btn-info btn-lg" onclick="restartQuiz()">
+                            <i class="fas fa-redo me-2"></i>Refaire l'examen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-xl">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmer la soumission</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir terminer l'examen ?</p>
+                <p><strong>Réponses données :</strong> <span id="modal-answered-count"></span> / {{ questions|length }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-success" onclick="confirmSubmit()">
+                    <i class="fas fa-check me-2"></i>Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const QUIZ_CONFIG = {
+    metier: "{{ metier }}",
+    questions: {{ questions|tojson }},
+    totalQuestions: {{ questions|length }}
+};
+let currentQuestionIndex = 0;
+let userAnswers = {};
+
+function renderCurrentQuestion() {
+    const question = QUIZ_CONFIG.questions[currentQuestionIndex];
+    document.getElementById('question-title').innerHTML =
+        `<i class="fas fa-question-circle me-2"></i>Situation ${question.numero}`;
+    document.getElementById('question-text').textContent = question.scenario;
+
+    const optionsContainer = document.getElementById('options-container');
+    optionsContainer.innerHTML = '';
+    for (let i = 1; i <= 3; i++) {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'quiz-option mb-3';
+        optionDiv.innerHTML = `
+            <div class="option-button p-4 rounded-xl border d-flex align-items-center fs-5" 
+                 data-value="${i}" 
+                 id="option-${currentQuestionIndex}-${i}">
+                <div class="option-radio me-3"></div>
+                <div class="option-text flex-grow-1">${question['option' + i]}</div>
+            </div>
+        `;
+        optionsContainer.appendChild(optionDiv);
+        const optionButton = optionDiv.querySelector('.option-button');
+        optionButton.addEventListener('click', function() {
+            selectAnswer(i);
+        });
+    }
+    const savedAnswer = userAnswers[currentQuestionIndex];
+    if (savedAnswer) selectAnswer(savedAnswer, false);
+    updateButtons();
+    updateProgress();
+    updateAnsweredCount();
+}
+
+function selectAnswer(optionValue, scroll = true) {
+    for (let i = 1; i <= 3; i++) {
+        const optionButton = document.getElementById(`option-${currentQuestionIndex}-${i}`);
+        const radioCircle = optionButton.querySelector('.option-radio');
+        optionButton.classList.remove('selected');
+        radioCircle.innerHTML = '';
+    }
+    const selectedOption = document.getElementById(`option-${currentQuestionIndex}-${optionValue}`);
+    if (selectedOption) {
+        selectedOption.classList.add('selected');
+        const radioCircle = selectedOption.querySelector('.option-radio');
+        radioCircle.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+        if (scroll) selectedOption.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    userAnswers[currentQuestionIndex] = optionValue;
+    updateButtons();
+    updateAnsweredCount();
+}
+
+function updateButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const finishBtn = document.getElementById('finishBtn');
+    const hasAnswer = userAnswers[currentQuestionIndex] !== undefined;
+    prevBtn.style.display = currentQuestionIndex > 0 ? 'block' : 'none';
+    if (currentQuestionIndex < QUIZ_CONFIG.totalQuestions - 1) {
+        nextBtn.style.display = 'block';
+        finishBtn.style.display = 'none';
+        nextBtn.disabled = !hasAnswer;
+    } else {
+        nextBtn.style.display = 'none';
+        finishBtn.style.display = 'block';
+        finishBtn.disabled = !hasAnswer;
+    }
+}
+function updateProgress() {
+    const progress = ((currentQuestionIndex + 1) / QUIZ_CONFIG.totalQuestions) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+    document.getElementById('questionCounter').textContent =
+        `Question ${currentQuestionIndex + 1} / ${QUIZ_CONFIG.totalQuestions}`;
+}
+function updateAnsweredCount() {
+    document.getElementById('answered-count').textContent = Object.keys(userAnswers).length;
+}
+function goToNext() {
+    if (userAnswers[currentQuestionIndex] === undefined) {
+        alert('Veuillez sélectionner une réponse avant de continuer.');
+        return;
+    }
+    if (currentQuestionIndex < QUIZ_CONFIG.totalQuestions - 1) {
+        currentQuestionIndex++;
+        renderCurrentQuestion();
+    }
+}
+function goToPrevious() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderCurrentQuestion();
+    }
+}
+function finishQuiz() {
+    document.getElementById('modal-answered-count').textContent = Object.keys(userAnswers).length;
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+}
+async function confirmSubmit() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+    modal.hide();
+    const missingAnswers = [];
+    for (let i = 0; i < QUIZ_CONFIG.totalQuestions; i++) {
+        if (userAnswers[i] === undefined) missingAnswers.push(i + 1);
+    }
+    if (missingAnswers.length > 0) {
+        alert(`Questions non répondues: ${missingAnswers.join(', ')}`);
+        currentQuestionIndex = missingAnswers[0] - 1;
+        renderCurrentQuestion();
+        updateProgress();
+        return;
+    }
+    const serverAnswers = {};
+    Object.keys(userAnswers).forEach(index => {
+        serverAnswers[`q_${index}`] = userAnswers[index];
+    });
+    try {
+        const finishBtn = document.getElementById('finishBtn');
+        const originalText = finishBtn.innerHTML;
+        finishBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Envoi...';
+        finishBtn.disabled = true;
+        const response = await fetch('/submit_quiz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', },
+            body: JSON.stringify({ metier: QUIZ_CONFIG.metier, answers: serverAnswers })
+        });
+        const data = await response.json();
+        if (data.success) showResults(data.score, data.badge);
+    } catch (error) {
+        alert('Une erreur est survenue lors de la soumission. Veuillez réessayer.');
+        const finishBtn = document.getElementById('finishBtn');
+        finishBtn.innerHTML = originalText;
+        finishBtn.disabled = false;
+    }
+}
+function showResults(score, badge) {
+    document.getElementById('quiz-app').style.display = 'none';
+    const scoreHtml = `
+        <div class="score-circle mx-auto mb-4" style="width: 180px; height: 180px; border-radius: 50%; background: ${score.percentage >= 75 ? 'linear-gradient(45deg, #28a745, #20c997)' : score.percentage >= 50 ? 'linear-gradient(45deg, #ffc107, #fd7e14)' : 'linear-gradient(45deg, #dc3545, #e83e8c)'}; display: flex; align-items: center; justify-content: center; color: white; font-size: 2.2rem; font-weight: bold; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
+            ${Math.round(score.percentage)}%
+        </div>
+        <h3 class="mb-3">${score.correct} / ${score.total} bonnes réponses</h3>
+        <p class="lead mb-4">
+            ${score.percentage >= 90 ? '🏆 Excellent ! Vous maîtrisez parfaitement le sujet.' :
+              score.percentage >= 75 ? '👍 Très bien ! Quelques points à revoir.' :
+              score.percentage >= 50 ? '⚠️ Correct, mais des améliorations sont nécessaires.' :
+              '📚 Il est recommandé de revoir la formation.'}
+        </p>
+    `;
+    const badgeHtml = `
+        <div class="badge-container mb-4">
+            <span class="badge bg-${badge.color} fs-5 p-3">
+                ${badge.icon} ${badge.name}
+            </span>
+        </div>
+    `;
+    document.getElementById('scoreDisplay').innerHTML = scoreHtml;
+    document.getElementById('badgeDisplay').innerHTML = badgeHtml;
+    document.getElementById('results').style.display = 'block';
+}
+function restartQuiz() {
+    if (confirm('Êtes-vous sûr de vouloir recommencer l\'examen ?')) {
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('quiz-app').style.display = 'block';
+        currentQuestionIndex = 0;
+        userAnswers = {};
+        renderCurrentQuestion();
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    renderCurrentQuestion();
+});
+</script>
+
+<style>
+.glass-effect {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.rounded-xl { border-radius: 1.5rem; }
+.bg-gradient-primary { background: linear-gradient(90deg, #2563eb 60%, #0ea5e9 100%)!important; }
+.progress-bar.bg-gradient {
+    background: linear-gradient(90deg, #2563eb, #0ea5e9, #10b981, #f59e0b);
+}
+.option-button {
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #f8fafc;
+    border: 2px solid #e0e7ef;
+    font-size: 1.1rem;
+}
+.option-button:hover, .option-button.selected {
+    background: #e0f2fe;
+    border-color: #0ea5e9;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.06);
+}
+.option-radio {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+.score-circle {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+@media (max-width: 768px) {
+    .card, .glass-effect { border-radius: 1rem!important; }
+    .option-button { font-size: 1rem; padding: 1rem; }
+}
+</style>
+{% endblock %}

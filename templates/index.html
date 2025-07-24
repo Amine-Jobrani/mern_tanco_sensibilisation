@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- HERO SECTION MODERNE -->
+<section class="hero-section bg-gradient-primary text-white py-5" style="background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%); min-height: 60vh;">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <div class="d-flex align-items-center mb-3">
+                    <div style="width:70px; height:70px; border-radius:50%; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; margin-right:1rem;">
+                        <i class="fas fa-user-shield fa-2x text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-1" style="font-weight:700;">Bienvenue, {{ user.prenom }} {{ user.nom }}</h2>
+                        <span class="badge bg-info fs-6 px-3 py-2" style="font-size:1rem;">
+                            <i class="fas fa-briefcase me-1"></i> {{ metiers[0] }}
+                        </span>
+                    </div>
+                </div>
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-industry me-3"></i>
+                    Cybersécurité Industrielle
+                </h1>
+                <p class="lead mb-4">
+                    Protégez vos données, vos systèmes et votre organisation.<br>
+                    <span class="text-warning fw-semibold">Votre parcours est personnalisé selon votre métier.</span>
+                </p>
+                <div class="d-flex gap-3 flex-wrap mb-2">
+                    <a href="#mon-parcours" class="btn btn-light btn-lg shadow">
+                        <i class="fas fa-play me-2"></i>Commencer ma formation
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg shadow">
+                        <i class="fas fa-chart-line me-2"></i>Voir mes progrès
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5 text-center">
+                <div class="hero-video position-relative" style="border-radius:20px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+                    <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=600&q=80" alt="Cybersécurité" class="img-fluid" style="opacity:0.85;">
+                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+                        <i class="fas fa-play-circle fa-4x text-white opacity-75"></i>
+                    </div>
+                    <div class="position-absolute bottom-0 start-0 end-0 p-2 text-white" style="background:rgba(0,0,0,0.3);font-size:1rem;">
+                        Vidéo d'introduction (2 min)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- STATISTIQUES -->
+<section class="stats-section py-5" style="background: linear-gradient(90deg, #f8fafc 60%, #e0f2fe 100%);">
+    <div class="container">
+        <div class="row text-center g-4">
+            <div class="col-md-4">
+                <div class="stat-card glass-effect p-4 rounded shadow-sm h-100">
+                    <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                    <h3 class="fw-bold text-danger mb-0">{{ stats.incidents_year }}</h3>
+                    <p class="mb-0">Incidents cyber signalés en 2024</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card glass-effect p-4 rounded shadow-sm h-100">
+                    <i class="fas fa-building fa-2x text-warning mb-2"></i>
+                    <h3 class="fw-bold text-warning mb-0">{{ stats.companies_affected }}%</h3>
+                    <p class="mb-0">Des entreprises industrielles impactées</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card glass-effect p-4 rounded shadow-sm h-100">
+                    <i class="fas fa-euro-sign fa-2x text-success mb-2"></i>
+                    <h3 class="fw-bold text-success mb-0">{{ stats.average_cost }}</h3>
+                    <p class="mb-0">Coût moyen d'un incident</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MON PARCOURS : Carte unique et élégante -->
+<section id="mon-parcours" class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="card glass-effect shadow-lg border-0" style="border-radius:1.5rem;">
+                    <div class="card-body text-center py-5">
+                        {% set metier = metiers[0] %}
+                        {% if metier == 'Ressources Humaines' %}
+                            <i class="fas fa-users fa-3x text-info mb-3"></i>
+                            <h3 class="fw-bold mb-3">Ressources Humaines</h3>
+                            <p class="mb-4">Gestion du Personnel & Recrutement</p>
+                            <div class="mb-4">
+                                <span class="badge bg-info me-2">Protection des données</span>
+                                <span class="badge bg-success me-2">Vérification des candidats</span>
+                                <span class="badge bg-warning">Gestion des accès</span>
+                            </div>
+                        {% elif metier == 'Achats' %}
+                            <i class="fas fa-shopping-cart fa-3x text-primary mb-3"></i>
+                            <h3 class="fw-bold mb-3">Achats / Supply Chain</h3>
+                            <p class="mb-4">Fournisseurs & Sécurisation des échanges</p>
+                            <div class="mb-4">
+                                <span class="badge bg-primary me-2">Vérification fournisseurs</span>
+                                <span class="badge bg-success me-2">Fraudes</span>
+                                <span class="badge bg-warning">Plateformes internes</span>
+                            </div>
+                        {% elif metier == 'Informatique' %}
+                            <i class="fas fa-laptop-code fa-3x text-success mb-3"></i>
+                            <h3 class="fw-bold mb-3">Informatique / DSI</h3>
+                            <p class="mb-4">Administration, sécurité et surveillance</p>
+                            <div class="mb-4">
+                                <span class="badge bg-success me-2">Gestion des accès</span>
+                                <span class="badge bg-primary me-2">Surveillance réseau</span>
+                                <span class="badge bg-warning">Réponse incidents</span>
+                            </div>
+                        {% elif metier == 'Techniciens' %}
+                            <i class="fas fa-tools fa-3x text-warning mb-3"></i>
+                            <h3 class="fw-bold mb-3">Techniciens</h3>
+                            <p class="mb-4">Maintenance & Sécurité terrain</p>
+                            <div class="mb-4">
+                                <span class="badge bg-warning me-2">Sécurité automates</span>
+                                <span class="badge bg-success me-2">Contrôle accès</span>
+                                <span class="badge bg-info">Outils mobiles</span>
+                            </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
+                            <a href="{{ url_for('formation', metier=metier) }}" class="btn btn-primary btn-lg px-4 shadow">
+                                <i class="fas fa-book-open me-2"></i>Entraînement interactif
+                            </a>
+                            <a href="{{ url_for('quiz', metier=metier) }}" class="btn btn-outline-primary btn-lg px-4 shadow">
+                                <i class="fas fa-question-circle me-2"></i>Passer l'examen
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center bg-transparent border-0 pt-0">
+                        <small class="text-muted">Vous ne verrez que les situations liées à votre métier.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section Alertes et Remontées -->
+<section class="alerts-section py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="fw-bold mb-4">
+                    <i class="fas fa-exclamation-triangle text-warning me-3"></i>
+                    Un doute ? Signalez-le !
+                </h2>
+                <p class="lead mb-4">
+                    Vous avez remarqué quelque chose de suspect ? Ne restez pas dans le doute. 
+                    Signalez immédiatement tout incident ou comportement anormal.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <button class="btn btn-warning btn-lg" onclick="reportIncident()">
+                        <i class="fas fa-flag me-2"></i>Signaler un incident
+                    </button>
+                    <a href="mailto:rssi@entreprise.com" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-envelope me-2"></i>Contacter le RSSI
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="alert-illustration">
+                    <i class="fas fa-shield-virus fa-8x text-danger opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="cta-section py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Prêt à sécuriser votre environnement ?</h2>
+        <p class="lead mb-4">Commencez dès maintenant votre formation personnalisée</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="#mon-parcours" class="btn btn-light btn-lg">
+                <i class="fas fa-rocket me-2"></i>Démarrer maintenant
+            </a>
+            <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-cogs me-2"></i>Voir toutes les questions
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

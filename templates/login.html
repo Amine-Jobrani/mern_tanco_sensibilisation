@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion - CyberGuard Industrie{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">Bienvenue sur CyberGuard Industrie</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('login') }}">
+                        <div class="mb-3">
+                            <label for="prenom" class="form-label">Prénom</label>
+                            <input type="text" class="form-control" id="prenom" name="prenom" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nom" class="form-label">Nom</label>
+                            <input type="text" class="form-control" id="nom" name="nom" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="service" class="form-label">Votre service</label>
+                            <select class="form-select" id="service" name="service" required>
+                                <option value="" selected disabled>Choisissez votre service</option>
+                                {% for metier in metiers %}
+                                <option value="{{ metier }}">{{ metier }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Commencer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

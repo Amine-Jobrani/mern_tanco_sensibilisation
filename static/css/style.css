@@ -1,0 +1,98 @@
+/* Styles pour le quiz - VERSION CORRIGÉE */
+.quiz-option {
+    margin-bottom: 1rem;
+}
+
+.option-button {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    user-select: none;
+    position: relative;
+    /* IMPORTANT : S'assurer que l'élément est cliquable */
+    pointer-events: all;
+    z-index: 1;
+}
+
+.option-button:hover {
+    border-color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.05);
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.option-button.selected {
+    border-color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.1);
+    transform: translateX(5px);
+}
+
+.option-radio {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #dee2e6;
+    border-radius: 50%;
+    margin-right: 1rem;
+    position: relative;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.option-button.selected .option-radio {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+}
+
+.option-button.selected .option-radio::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: white;
+}
+
+.option-text {
+    flex: 1;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    line-height: 1.4;
+}
+
+.option-button.selected .option-text {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* S'assurer que le conteneur n'interfère pas */
+#options-container {
+    pointer-events: all;
+    position: relative;
+    z-index: 1;
+}
+
+/* Animation pour les transitions */
+#quiz-app {
+    transition: all 0.3s ease;
+}
+
+/* Boutons désactivés */
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Debug : bordure rouge pour voir les zones cliquables */
+.option-button {
+    /* Décommentez pour debug */
+    /* border: 2px solid red !important; */
+}

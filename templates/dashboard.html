@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de Bord - CyberGuard Industrie{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold mb-4">
+                <i class="fas fa-chart-line me-3"></i>
+                Tableau de Bord - {{ user.prenom }} {{ user.nom }}
+                <span class="badge bg-info ms-3">{{ user.service }}</span>
+            </h1>
+
+            <!-- Statistiques globales -->
+            <div class="row mb-5">
+                <div class="col-md-4">
+                    <div class="card text-center bg-primary text-white">
+                        <div class="card-body">
+                            <i class="fas fa-clipboard-check fa-2x mb-2"></i>
+                            <h3>
+                                {{ scores|length }}
+                            </h3>
+                            <p class="mb-0">Quiz complété</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center bg-success text-white">
+                        <div class="card-body">
+                            <i class="fas fa-percentage fa-2x mb-2"></i>
+                            <h3>{{ "%.0f"|format(avg_score) }}%</h3>
+                            <p class="mb-0">Score</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center bg-warning text-white">
+                        <div class="card-body">
+                            <i class="fas fa-medal fa-2x mb-2"></i>
+                            <h3>{{ badges|length }}</h3>
+                            <p class="mb-0">Badge obtenu</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Résultat du quiz du service -->
+            {% if scores %}
+            <div class="row">
+                {% for metier, data in scores.items() %}
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                {% if metier == 'Ressources Humaines' %}
+                                    <i class="fas fa-users text-info me-2"></i>
+                                {% elif metier == 'Achats' %}
+                                    <i class="fas fa-shopping-cart text-primary me-2"></i>
+                                {% elif metier == 'Informatique' %}
+                                    <i class="fas fa-laptop-code text-success me-2"></i>
+                                {% elif metier == 'Techniciens' %}
+                                    <i class="fas fa-tools text-warning me-2"></i>
+                                {% endif %}
+                                {{ metier }}
+                            </h5>
+                            <small class="text-muted">{{ data.date[:10] }}</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-6">
+                                    <div class="score-circle mx-auto mb-3" 
+                                         style="width: 100px; height: 100px; border-radius: 50%; 
+                                                background: {% if data.score.percentage >= 75 %}linear-gradient(45deg, #28a745, #20c997){% elif data.score.percentage >= 50 %}linear-gradient(45deg, #ffc107, #fd7e14){% else %}linear-gradient(45deg, #dc3545, #e83e8c){% endif %}; 
+                                                display: flex; align-items: center; justify-content: center; 
+                                                color: white; font-size: 18px; font-weight: bold;">
+                                        {{ "%.0f"|format(data.score.percentage) }}%
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <p class="mb-2">
+                                        <strong>{{ data.score.correct }} / {{ data.score.total }}</strong> 
+                                        bonnes réponses
+                                    </p>
+                                    {% set badge = get_badge(data.score.percentage) %}
+                                    <span class="badge bg-{{ badge.color }} p-2">
+                                        {{ badge.icon }} {{ badge.name }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar 
+                                         {% if data.score.percentage >= 75 %}bg-success{% elif data.score.percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         style="width: {{ data.score.percentage }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('quiz', metier=metier) }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-redo me-1"></i>Refaire le quiz
+                                </a>
+                                <a href="{{ url_for('formation', metier=metier) }}" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-book-open me-1"></i>Revoir la formation
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-clipboard-list fa-5x text-muted mb-4"></i>
+                <h3 class="text-muted">Aucun quiz complété</h3>
+                <p class="lead text-muted mb-4">Commencez votre formation pour voir vos progrès ici</p>
+                <a href="{{ url_for('quiz', metier=user.service) }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-play me-2"></i>Commencer le quiz
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

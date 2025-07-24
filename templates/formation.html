@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Formation interactive - {{ metier }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="display-5 fw-bold mb-4 text-center">
+                <i class="fas fa-graduation-cap me-2"></i>
+                Entraînement interactif - {{ metier }}
+            </h1>
+            <div id="training-app">
+                <div class="card mb-4 glass-effect border-0 shadow-lg rounded-xl" id="training-question">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0" id="training-title">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Situation <span id="training-num"></span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead mb-4" id="training-text"></p>
+                        <div id="training-options"></div>
+                        <div id="training-feedback" class="mt-4" style="display:none;"></div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" onclick="prevTraining()" id="prevTrainingBtn" style="display:none;">
+                            <i class="fas fa-arrow-left me-2"></i>Précédent
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="nextTraining()" id="nextTrainingBtn" disabled>
+                            Suivant<i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="finishTraining()" id="finishTrainingBtn" style="display:none;">
+                            <i class="fas fa-check me-2"></i>Terminer
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="training-end" class="card text-center glass-effect shadow-lg" style="display:none;">
+                <div class="card-body">
+                    <h3 class="mb-4 text-success"><i class="fas fa-check-circle me-2"></i>Bravo, vous avez terminé l'entraînement !</h3>
+                    <a href="{{ url_for('quiz', metier=metier) }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-question-circle me-2"></i>Passer à l'examen
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const trainingQuestions = {{ questions|tojson }};
+let trainingIndex = 0;
+let trainingAnswered = false;
+
+function renderTrainingQuestion() {
+    const q = trainingQuestions[trainingIndex];
+    document.getElementById('training-num').textContent = q.numero;
+    document.getElementById('training-text').textContent = q.scenario;
+    document.getElementById('training-feedback').style.display = 'none';
+    document.getElementById('training-feedback').innerHTML = '';
+    document.getElementById('nextTrainingBtn').disabled = true;
+    document.getElementById('finishTrainingBtn').style.display = 'none';
+    document.getElementById('prevTrainingBtn').style.display = (trainingIndex > 0) ? 'inline-block' : 'none';
+
+    let html = '';
+    for (let i = 1; i <= 3; i++) {
+        html += `<div class="training-option mb-3">
+            <button class="btn btn-outline-dark w-100" onclick="selectTraining(${i})" id="option-btn-${i}">
+                ${q['option'+i]}
+            </button>
+        </div>`;
+    }
+    document.getElementById('training-options').innerHTML = html;
+    trainingAnswered = false;
+}
+
+function selectTraining(choice) {
+    if (trainingAnswered) return;
+    trainingAnswered = true;
+    const q = trainingQuestions[trainingIndex];
+    for (let i = 1; i <= 3; i++) {
+        document.getElementById(`option-btn-${i}`).disabled = true;
+    }
+    let feedback = '';
+    if (choice == q.bonne_reponse) {
+        feedback = `<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>
+            Bonne réponse !<br><strong>Explication :</strong> ${q.explication}</div>`;
+    } else {
+        feedback = `<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>
+            Mauvaise réponse.<br><strong>Explication :</strong> ${q.explication}</div>`;
+        document.getElementById(`option-btn-${q.bonne_reponse}`).classList.add('btn-success');
+    }
+    document.getElementById(`option-btn-${choice}`).classList.add(choice == q.bonne_reponse ? 'btn-success' : 'btn-danger');
+    document.getElementById('training-feedback').innerHTML = feedback;
+    document.getElementById('training-feedback').style.display = 'block';
+    if (trainingIndex < trainingQuestions.length - 1) {
+        document.getElementById('nextTrainingBtn').disabled = false;
+    } else {
+        document.getElementById('finishTrainingBtn').style.display = 'inline-block';
+    }
+}
+
+function nextTraining() {
+    if (trainingIndex < trainingQuestions.length - 1) {
+        trainingIndex++;
+        renderTrainingQuestion();
+    }
+}
+
+function prevTraining() {
+    if (trainingIndex > 0) {
+        trainingIndex--;
+        renderTrainingQuestion();
+    }
+}
+
+function finishTraining() {
+    document.getElementById('training-app').style.display = 'none';
+    document.getElementById('training-end').style.display = 'block';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderTrainingQuestion();
+});
+</script>
+{% endblock %}
