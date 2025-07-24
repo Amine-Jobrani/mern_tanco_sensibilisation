@@ -35,7 +35,7 @@
 Si vous avez Git
 ```
 https://github.com/Amine-Jobrani/mern_tanco_sensibilisation
-cd cyberguard_industrie
+cd mern_tanco_sensibilisation
 ```
 
 ### Créer l'environnement virtuel
@@ -64,5 +64,5 @@ python app.py
 ## ONE LINE COMMAND TO DO ALL
 ### Linux/Mac (bash)
 ```
-git clone https://github.com/Amine-Jobrani/mern_tanco_sensibilisation && cd cyberguard_industrie && sudo apt-get update && sudo apt-get install -y mongodb && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python app.py
+git clone https://github.com/Amine-Jobrani/mern_tanco_sensibilisation && cd mern_tanco_sensibilisation && sudo apt-get update && sudo apt-get install -y mongodb && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python app.py
 ```
